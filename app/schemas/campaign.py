@@ -1,7 +1,13 @@
 from datetime import datetime
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, field_validator, model_validator
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 from app.schemas.common import DateTimeMoscowMixin, ORMModel
 from app.utils.time import ensure_moscow_tz
@@ -10,7 +16,9 @@ from app.utils.time import ensure_moscow_tz
 class CampaignBase(BaseModel):
     """базовая схема кампании"""
 
-    name: str
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=1, max_length=255)
     is_active: bool = True
     starts_at: datetime | None = None
     expires_at: datetime | None = None
@@ -38,13 +46,34 @@ class CampaignBase(BaseModel):
 class CampaignCreate(CampaignBase):
     """создание кампании"""
 
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "name": "summer 2026",
+                "is_active": True,
+                "starts_at": "2026-06-01T00:00:00+03:00",
+                "expires_at": "2026-08-31T23:59:59+03:00",
+            }
+        },
+    )
+
 
 class CampaignUpdate(BaseModel):
     """обновление кампании"""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "name": "summer 2026 extended",
+                "expires_at": "2026-09-15T23:59:59+03:00",
+                "is_active": True,
+            }
+        },
+    )
 
-    name: str | None = None
+    name: str | None = Field(default=None, min_length=1, max_length=255)
     is_active: bool | None = None
     starts_at: datetime | None = None
     expires_at: datetime | None = None

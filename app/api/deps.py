@@ -1,7 +1,7 @@
 from uuid import UUID
 
 from fastapi import Depends
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -10,19 +10,21 @@ from app.core.errors import ForbiddenError, UnauthorizedError
 from app.core.security import decode_token
 from app.models.user import User
 
-bearer_scheme = HTTPBearer(auto_error=False)
+oauth2_scheme = OAuth2PasswordBearer(
+    tokenUrl="/api/auth/token", auto_error=False
+)
 
 
 def get_current_user(
-    credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
+    token: str | None = Depends(oauth2_scheme),
     db: Session = Depends(get_db),
 ) -> User:
     """возвращает текущего пользователя"""
 
-    if credentials is None or credentials.scheme.lower() != "bearer":
+    if not token:
         raise UnauthorizedError("требуется bearer токен")
 
-    payload = decode_token(credentials.credentials)
+    payload = decode_token(token)
     subject = payload.get("sub")
     if not subject:
         raise UnauthorizedError("в токене отсутствует subject")

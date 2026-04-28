@@ -19,8 +19,10 @@ from app.utils.time import ensure_moscow_tz
 class PromoBase(BaseModel):
     """базовая схема промокода"""
 
+    model_config = ConfigDict(extra="forbid")
+
     campaign_id: UUID
-    code: str
+    code: str = Field(min_length=1, max_length=100)
     description: str | None = None
     promo_type: PromoType
     bonus_points: int
@@ -84,14 +86,43 @@ class PromoBase(BaseModel):
 class PromoCreate(PromoBase):
     """создание промокода"""
 
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "campaign_id": "10000000-0000-0000-0000-000000000001",
+                "code": "SUMMER500",
+                "description": "бонус для летней кампании",
+                "promo_type": "generic",
+                "bonus_points": 500,
+                "is_active": True,
+                "starts_at": "2026-06-01T00:00:00+03:00",
+                "expires_at": "2026-08-31T23:59:59+03:00",
+                "max_activations": 1000,
+                "per_user_limit": 1,
+                "target_user_id": None,
+            }
+        },
+    )
+
 
 class PromoUpdate(BaseModel):
     """обновление промокода"""
 
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "description": "обновленное описание",
+                "bonus_points": 600,
+                "per_user_limit": 2,
+                "expires_at": "2026-09-15T23:59:59+03:00",
+            }
+        },
+    )
 
     campaign_id: UUID | None = None
-    code: str | None = None
+    code: str | None = Field(default=None, min_length=1, max_length=100)
     description: str | None = None
     promo_type: PromoType | None = None
     bonus_points: int | None = None

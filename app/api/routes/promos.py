@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Path, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_admin, get_current_user
@@ -45,8 +45,8 @@ def create_promo_endpoint(
     "/{promo_id}", response_model=PromoRead, status_code=status.HTTP_200_OK
 )
 def update_promo_endpoint(
-    promo_id: UUID,
     payload: PromoUpdate,
+    promo_id: UUID = Path(..., description="uuid существующего промокода"),
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin),
 ) -> PromoRead:
@@ -63,7 +63,7 @@ def update_promo_endpoint(
     status_code=status.HTTP_200_OK,
 )
 def disable_promo_endpoint(
-    promo_id: UUID,
+    promo_id: UUID = Path(..., description="uuid существующего промокода"),
     db: Session = Depends(get_db),
     admin: User = Depends(get_current_admin),
 ) -> PromoRead:
@@ -130,7 +130,7 @@ def list_promos_endpoint(
     status_code=status.HTTP_200_OK,
 )
 def get_promo_endpoint(
-    promo_id: UUID,
+    promo_id: UUID = Path(..., description="uuid существующего промокода"),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> PromoReadDetailed:
@@ -154,7 +154,7 @@ def get_promo_endpoint(
     status_code=status.HTTP_201_CREATED,
 )
 def activate_promo_endpoint(
-    promo_id: UUID,
+    promo_id: UUID = Path(..., description="uuid существующего промокода"),
     db: Session = Depends(get_db),
     user: User = Depends(get_current_user),
 ) -> PromoActivationRead:

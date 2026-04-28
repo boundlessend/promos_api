@@ -66,6 +66,11 @@ make run
 
 docs swagger будут на `http://localhost:8000/docs`
 
+в swagger authorize можно сразу ввести логин и пароль
+
+- `username` = email пользователя
+- `password` = пароль
+
 ## запуск через docker compose
 
 ```bash
@@ -109,6 +114,7 @@ make logs
 ### auth
 
 - `POST /api/auth/jwt/login`
+- `POST /api/auth/token` для swagger authorize
 - `GET /api/auth/users/me`
 
 ### campaigns

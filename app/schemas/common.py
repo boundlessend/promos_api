@@ -1,6 +1,5 @@
 from datetime import datetime
 from typing import Any
-from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, field_serializer
 
@@ -43,9 +42,3 @@ class ErrorResponse(BaseModel):
     """схема ответа ошибки"""
 
     error: ErrorDetail
-
-
-class UUIDPath(BaseModel):
-    """схема uuid пути"""
-
-    id: UUID

@@ -1,12 +1,22 @@
 from uuid import UUID
 
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, ConfigDict, EmailStr
 
 from app.schemas.common import DateTimeMoscowMixin, ORMModel
 
 
 class LoginRequest(BaseModel):
     """запрос на логин"""
+
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "example": {
+                "email": "admin@example.com",
+                "password": "admin123",
+            }
+        },
+    )
 
     email: EmailStr
     password: str

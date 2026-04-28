@@ -9,9 +9,7 @@ class Settings(BaseSettings):
 
     app_name: str = "promo service"
     api_prefix: str = "/api"
-    secret_key: str = Field(
-        default="misha-privet", alias="SECRET_KEY"
-    )
+    secret_key: str = Field(default="misha-privet", alias="SECRET_KEY")
     access_token_expire_minutes: int = Field(
         default=120, alias="ACCESS_TOKEN_EXPIRE_MINUTES"
     )

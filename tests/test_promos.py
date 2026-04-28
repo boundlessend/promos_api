@@ -181,3 +181,51 @@ def test_admin_sees_history_in_promo_details(client, seed_data, auth_headers):
     assert detail_response.status_code == 200
     assert len(detail_response.json()["history"]) == 1
     assert detail_response.json()["history"][0]["action"] == "created"
+
+
+def test_admin_cannot_update_promo_with_duplicate_code(
+    client, seed_data, auth_headers
+):
+    headers = auth_headers("admin@example.com", "admin123")
+    create_response = client.post(
+        "/api/promos",
+        headers=headers,
+        json={
+            "campaign_id": str(seed_data["active_campaign"].id),
+            "code": "UNIQUE700",
+            "description": "created by admin",
+            "promo_type": "generic",
+            "bonus_points": 200,
+            "is_active": True,
+            "starts_at": None,
+            "expires_at": None,
+            "max_activations": 10,
+            "per_user_limit": 1,
+            "target_user_id": None,
+        },
+    )
+    assert create_response.status_code == 201, create_response.text
+
+    promo_id = create_response.json()["id"]
+    update_response = client.patch(
+        f"/api/promos/{promo_id}",
+        headers=headers,
+        json={"code": "GENERIC100"},
+    )
+
+    assert update_response.status_code == 409
+    assert (
+        update_response.json()["error"]["code"] == "promo_code_already_exists"
+    )
+
+
+def test_activate_promo_does_not_fail_on_row_lock_query(
+    client, seed_data, auth_headers
+):
+    response = client.post(
+        f"/api/promos/{seed_data['personal_promo'].id}/activate",
+        headers=auth_headers("user@example.com", "user123"),
+    )
+
+    assert response.status_code == 201
+    assert response.json()["promo_code_snapshot"] == "PERSONAL500"

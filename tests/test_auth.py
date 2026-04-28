@@ -37,3 +37,22 @@ def test_me_returns_current_user(client, seed_data, auth_headers):
     assert response.status_code == 200
     assert response.json()["email"] == "user@example.com"
     assert response.json()["is_admin"] is False
+
+
+def test_swagger_token_login_success(client, seed_data):
+    response = client.post(
+        "/api/auth/token",
+        data={"email": "user@example.com", "password": "user123"},
+    )
+
+    assert response.status_code == 200
+    assert response.json()["token_type"] == "bearer"
+    assert response.json()["access_token"]
+
+
+def test_openapi_exposes_oauth2_password_flow(client):
+    response = client.get("/openapi.json")
+
+    assert response.status_code == 200
+    security_schemes = response.json()["components"]["securitySchemes"]
+    assert any(item["type"] == "oauth2" for item in security_schemes.values())

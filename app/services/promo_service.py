@@ -254,6 +254,23 @@ def validate_promo_refs(
     return campaign, target_user
 
 
+def ensure_unique_promo_code(
+    db: Session, code: str, exclude_promo_id: UUID | None = None
+) -> None:
+    """проверяет уникальность code у промокода"""
+
+    query = select(PromoCode.id).where(PromoCode.code == code)
+    if exclude_promo_id is not None:
+        query = query.where(PromoCode.id != exclude_promo_id)
+    existing_id = db.execute(query).scalar_one_or_none()
+    if existing_id is not None:
+        raise ConflictError(
+            "promo_code_already_exists",
+            "промокод с таким code уже существует",
+            {"code": code, "existing_promo_id": str(existing_id)},
+        )
+
+
 def validate_promo_update_business_rules(
     db: Session, promo: PromoCode, payload: PromoUpdate
 ) -> None:
@@ -350,6 +367,7 @@ def create_promo(
     """создает промокод"""
 
     validate_promo_refs(db, payload)
+    ensure_unique_promo_code(db, payload.code)
     promo = PromoCode(**payload.model_dump())
     db.add(promo)
     db.flush()
@@ -373,6 +391,8 @@ def update_promo(
 
     validate_promo_update_business_rules(db, promo, payload)
     validate_promo_refs(db, payload, promo)
+    next_code = get_field_value(payload, "code", promo.code)
+    ensure_unique_promo_code(db, next_code, exclude_promo_id=promo.id)
     before_payload = model_to_dict(promo)
     for field in payload.model_fields_set:
         setattr(promo, field, getattr(payload, field))
@@ -544,7 +564,7 @@ def activate_promo(db: Session, promo_id: UUID, user: User) -> PromoActivation:
     promo = (
         db.execute(
             select(PromoCode)
-            .options(joinedload(PromoCode.campaign))
+            .options(selectinload(PromoCode.campaign))
             .where(PromoCode.id == promo_id)
             .with_for_update()
         )
